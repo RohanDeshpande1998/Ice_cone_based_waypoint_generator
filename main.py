@@ -25,7 +25,7 @@ def generate_waypoint(robot_motion_vector, goal, sensor_data_points):
     for direction in sensor_data_point_directions:
         dot_products = np.clip(np.dot(sensor_data_point_directions, direction), -1.0, 1.0)
         valid_mask_dot_products_non_negative = dot_products >= 0
-        valid_mask_dot_product_less_than_axis_angle = dot_products <= np.dot(direction,robot_motion_vector_hat)
+        valid_mask_dot_product_less_than_axis_angle = dot_products >= np.dot(direction,robot_motion_vector_hat)
         valid_points_mask = valid_mask_dot_products_non_negative & valid_mask_dot_product_less_than_axis_angle
         if np.any(valid_points_mask):
             valid_sensor_data_point_directions = sensor_data_point_directions[valid_points_mask]
@@ -42,6 +42,7 @@ def generate_waypoint(robot_motion_vector, goal, sensor_data_points):
     cone_axis_candidates = np.array(cone_axis_candidates)
     cone_axis_angle_candidates = np.array(cone_axis_angle_candidates)
     robot_to_sphere_center_distance_candidates = np.array(robot_to_sphere_center_distance_candidates)
+    d = 0
 
     waypoint_candidates = cone_axis_candidates*robot_to_sphere_center_distance_candidates[:, np.newaxis]
     min_dist = math.inf
@@ -51,8 +52,9 @@ def generate_waypoint(robot_motion_vector, goal, sensor_data_points):
             min_dist = curr_dist
             waypoint = list(possible_waypoint)
             cone_axis_angle = cone_axis_angle_candidates[index]
+            d = robot_to_sphere_center_distance_candidates[index]
             cone_axis = cone_axis_candidates[index]
-    sphere_radius = min_dist * math.sin(cone_axis_angle)
+    sphere_radius = d * math.sin(cone_axis_angle)
 
     return waypoint, cone_axis_angle, sphere_radius 
     
